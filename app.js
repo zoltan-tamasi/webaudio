@@ -1,8 +1,14 @@
 var express = require('express');
 var app = express();
 
-app.get('/', function(req, res) {
-  res.send('Hello from <a href="http://appfog.com">AppFog.com</a>');
+app.use(express.static(__dirname));
+
+
+app.set('views', __dirname);
+app.set('view engine', 'jade');
+
+app.get('/', function(req, res){
+  res.render('index');
 });
 
 app.listen(process.env.VCAP_APP_PORT || 3000);
