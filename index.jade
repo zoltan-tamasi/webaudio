@@ -28,12 +28,12 @@ html( lang="en" )
                     .panel.panel-default
                         .panel-heading
                             h3.panel-title Selected sample
-                        .panel-body(style="min-height: 337px;") Metadata
+                        #selected-sample.panel-body(style="min-height: 337px;")
 
                     .panel.panel-default
                         .panel-heading
                             h3.panel-title Transport
-                        .panel-body(style="min-height: 100px;") content...
+                        .panel-body(style="min-height: 100px;")
                                                         
                 .col-md-8.col-sm-8.col-xs-12
                     nav.navbar.navbar-default( role="navigation" )
@@ -41,18 +41,19 @@ html( lang="en" )
                             .input-group( style="margin-top: 10px; margin-left: 20px; margin-right: 20px;" )
                                 input#search( type="text", class="form-control", placeholder="Search for...", aria-describedby="basic-addon1" )
                                 span.input-group-btn
-                                    button( class="btn btn-default", type="button") Go!
+                                    button#search-button( class="btn btn-default", type="button") Go!
 
                     .panel.panel-default
                         .panel-heading
                             h3.panel-title Search results
-                        .panel-body(style="min-height: 500px;") content...
+                        #search-results.panel-body(style="min-height: 500px; max-height: 500px; padding: 0px; overflow-y: scroll;") 
+                            
             .row
                 .panel.panel-default
                         .panel-heading
                             h3.panel-title Waveform
-                        .panel-body(style="min-height: 100px;") content...
+                        #waveform.panel-body(style="min-height: 100px; text-align: center")
     
         script( src='//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js' )
         script( src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js' )
-        script( src='main.js' )
+        script( src='scripts/main.js' )
