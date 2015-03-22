@@ -33,7 +33,12 @@ html( lang="en" )
                     .panel.panel-default
                         .panel-heading
                             h3.panel-title Transport
-                        .panel-body(style="min-height: 100px;")
+                        .panel-body(style="min-height: 100px; max-height: 100px; text-align: center;")
+                            img#loading( src="icons/loading.gif", width="60px", style="display: none;" )
+                            a#pause-button( href="#", style="display:none;")
+                                img( src="icons/pause.png", width="40px")
+                            a#play-button( href="#", style="display:none;" )
+                                img( src="icons/play.png", width="40px")
                                                         
                 .col-md-8.col-sm-8.col-xs-12
                     nav.navbar.navbar-default( role="navigation" )
