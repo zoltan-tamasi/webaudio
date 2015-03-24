@@ -4,6 +4,7 @@
   "dependencies": {
     "express": "^4.10.2",
     "jade": "*",
-    "request": "^2.53.0"
+    "request": "^2.53.0",
+    "redis": "^0.12.1"
   }
 }
