@@ -57,7 +57,12 @@ function template(audio) {
             select(audio.id);
         })
         .html([
-            $("<h5>").addClass("list-group-item-heading").text(audio.name),
+            $("<h5>").addClass("list-group-item-heading").html([
+                $("<span>").text(audio.name),
+                $("<small>").html([
+                    $("<span>").text("  license: "),
+                    $("<a>").text(audio.license).attr("href", audio.license)])
+            ]),
             $("<p>").addClass("list-group-item-text").html(
                 audio.tags.slice(0, 8).map(function(tag) {
                     return $("<span>").addClass("badge").css("margin-right", "5px").text(tag); 
