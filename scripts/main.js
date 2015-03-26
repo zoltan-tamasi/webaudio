@@ -2,6 +2,30 @@ var context;
 var source;
 var selectedId;
 
+function formatFileSize(filesize) {
+    if (filesize >= 1000000) {
+        return parseFloat(filesize / 1000000).toFixed(1) + " MB";
+    }
+    if (filesize > 1000) {
+        return parseFloat(filesize / 1000).toFixed(1) + " KB";
+    }
+    return filesize;
+}
+
+function formatDuration(duration) {
+    var min = parseInt(duration / 60);
+    if (min < 10) {
+        min = "0" + min;
+    }
+
+    var sec = parseInt(duration % 60);
+    if (sec < 10) {
+        sec = "0" + sec;
+    }
+
+    return min + ":" + sec + "." + parseFloat(duration % 1).toFixed(1) * 10;
+}
+
 function select(id) {
     stopSound();
     loading(false);
@@ -13,10 +37,10 @@ function select(id) {
                 $("<tr>").html([ $("<td>").css("text-align", "left").text("name:"), $("<td>").css("text-align", "left").text(audio.name) ]),
                 $("<tr>").html([ $("<td>").text("type:"), $("<td>").text(audio.type) ]),
                 $("<tr>").html([ $("<td>").text("channels:"), $("<td>").text(audio.channels) ]),
-                $("<tr>").html([ $("<td>").text("filesize:"), $("<td>").text(audio.filesize) ]),
+                $("<tr>").html([ $("<td>").text("filesize:"), $("<td>").text(formatFileSize(audio.filesize)) ]),
                 $("<tr>").html([ $("<td>").text("bitrate:"), $("<td>").text(audio.bitrate) ]),
                 $("<tr>").html([ $("<td>").text("bitdepth:"), $("<td>").text(audio.bitdepth) ]),
-                $("<tr>").html([ $("<td>").text("duration:"), $("<td>").text(audio.duration) ]),
+                $("<tr>").html([ $("<td>").text("duration:"), $("<td>").text(formatDuration(audio.duration)) ]),
                 $("<tr>").html([ $("<td>").text("samplerate:"), $("<td>").text(audio.samplerate) ])
             ])
         ]);

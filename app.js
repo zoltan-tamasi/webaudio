@@ -10,33 +10,6 @@ redisStore.on('connect', function() {
     console.log('connected to redis');
 });
 
-var refreshTokenJob;
-
-function refreshToken() {
-    redisStore.mget(['oauthToken', 'refreshToken'], function(err, reply) {
-        if (err) { console.log(err); return;}
-        request.post('https://www.freesound.org/apiv2/oauth2/access_token/', {
-            form: {
-                'client_id' : process.env.CLIENT_ID || 'e4cd6c8ea6167f5ae50d',
-                'client_secret' : process.env.CLIENT_SECRET || '8390a6d1330cbb30bb4b79794f3a0a36ed95b877',
-                'grant_type' : 'refresh_token',
-                'refresh_token' : reply[1]
-            }
-        }, function(error, response, body) {
-            var tokenStore = {
-                oauthToken : JSON.parse(response.body).access_token,
-                refreshToken : JSON.parse(response.body).refresh_token
-            };
-
-            console.log('The new access token is:' + tokenStore.oauthToken);
-            console.log('The new refresh token is:' + tokenStore.refreshToken);
-
-            redisStore.set('oauthToken', tokenStore.oauthToken);
-            redisStore.set('refreshToken', tokenStore.refreshToken);
-        });
-    });
-}
-
 app.use(express.static(__dirname));
 
 app.set('views', __dirname);
@@ -97,9 +70,6 @@ app.get('/sounddata/:id', function(req, res) {
         res.send(body);
     });
 });
-
-//refreshToken();
-refreshTokenJob = setInterval(refreshToken, 12 * 60 * 60 * 1000);
 
 app.listen(process.env.VCAP_APP_PORT || 3000);
 console.log("Server is listening on port: " + (process.env.VCAP_APP_PORT || 3000));
