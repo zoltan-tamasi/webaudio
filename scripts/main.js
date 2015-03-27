@@ -26,6 +26,66 @@ function formatDuration(duration) {
     return min + ":" + sec + "." + parseFloat(duration % 1).toFixed(1) * 10;
 }
 
+var canvasWidth = 768;
+var canvasHeight = 120;
+var newCanvas = createCanvas(canvasWidth, canvasHeight);
+
+function createCanvas (w, h) {
+    var newCanvas = document.createElement('canvas');
+    newCanvas.width  = w;
+    newCanvas.height = h;
+    return newCanvas;
+};
+
+function displayBuffer(buff) {
+    var leftChannel = buff.getChannelData(0);
+    var rightChannel = buff.numberOfChannels == 1 ? buff.getChannelData(0) : buff.getChannelData(1);
+    var lineOpacity = canvasWidth / leftChannel.length;
+    canvas.save();
+    canvas.fillStyle = '#222';
+    canvas.fillRect(0, 0, canvasWidth, canvasHeight);
+    canvas.strokeStyle = '#5A5';
+    canvas.globalCompositeOperation = 'lighter';
+    canvas.translate(0, canvasHeight / 2);
+    canvas.globalAlpha = 0.6;
+ 
+    var partitionLength = parseInt(leftChannel.length / canvasWidth);
+    var parts = parseInt(leftChannel.length / partitionLength);
+ 
+    var slice, absval, x, y, max;
+    for (var i = 0; i <= parts; i++) {
+        slice = leftChannel.subarray(i * partitionLength, i * partitionLength + partitionLength);
+        max = 0;
+        for (val in slice) {
+            absval = Math.abs(slice[val]);
+            max = absval > max ? absval : max;
+        }
+
+        x = i;
+        y = -(max * canvasHeight / 2);
+        canvas.beginPath();
+        canvas.moveTo(x, 0);
+        canvas.lineTo(x + 1, y);
+        canvas.stroke();
+
+        slice = rightChannel.subarray(i * partitionLength, i * partitionLength + partitionLength);
+        max = 0;
+        for (val in slice) {
+            absval = Math.abs(slice[val]);
+            max = absval > max ? absval : max;
+        }
+
+        y = max * canvasHeight / 2;
+        canvas.beginPath();
+        canvas.moveTo(x, 0);
+        canvas.lineTo(x + 1, y);
+        canvas.stroke();
+    }
+    canvas.restore();
+    console.log('done');
+}
+
+
 function select(id) {
     stopSound();
     loading(false);
@@ -45,7 +105,7 @@ function select(id) {
             ])
         ]);
 
-        $("#waveform").html($("<img>").attr("src", audio.images.waveform_l));
+        
     });
 }
 
@@ -111,7 +171,8 @@ function loadSound(id) {
 function playSound(buffer) {
     source = context.createBufferSource(); 
     source.buffer = buffer;                    
-    source.connect(context.destination);       
+    source.connect(context.destination);
+    displayBuffer(soundBuffer);
     source.start(0);                           
 }
 
@@ -149,6 +210,9 @@ $(function() {
     try {
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         context = new AudioContext();
+
+        $("#waveform").append(newCanvas);
+        canvas = newCanvas.getContext('2d');
     } catch(e) {
         alert('Web Audio API is not supported in this browser');
     }
