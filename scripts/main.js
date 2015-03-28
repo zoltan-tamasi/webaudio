@@ -26,8 +26,8 @@ function formatDuration(duration) {
     return min + ":" + sec + "." + parseFloat(duration % 1).toFixed(1) * 10;
 }
 
-var canvasWidth = 768;
-var canvasHeight = 120;
+var canvasWidth = 900;
+var canvasHeight = 200;
 var newCanvas = createCanvas(canvasWidth, canvasHeight);
 
 function createCanvas (w, h) {
@@ -105,7 +105,10 @@ function select(id) {
             ])
         ]);
 
-        
+        $("#generated-image").hide();
+        $("#downloaded-image")
+            .html($("<img>").attr("src", audio.images.waveform_l))
+            .show();
     });
 }
 
@@ -173,6 +176,8 @@ function playSound(buffer) {
     source.buffer = buffer;                    
     source.connect(context.destination);
     displayBuffer(soundBuffer);
+    $("#downloaded-image").hide();
+    $("#generated-image").show();
     source.start(0);                           
 }
 
@@ -211,7 +216,7 @@ $(function() {
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         context = new AudioContext();
 
-        $("#waveform").append(newCanvas);
+        $("#generated-image").append(newCanvas);
         canvas = newCanvas.getContext('2d');
     } catch(e) {
         alert('Web Audio API is not supported in this browser');
