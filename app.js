@@ -1,28 +1,19 @@
 var express = require('express');
 var app = express();
 var request = require('request');
-var redis = require('redis');
+var mongodb = require('mongodb');
 var CronJob = require('cron').CronJob;
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var expressSession = require('express-session');
 
-var redisData, redisStore;
-if (process.env.VCAP_SERVICES) {
-    redisData = JSON.parse(process.env.VCAP_SERVICES)["redis-2.2"][0];
-} else {
-    redisData = {
-        credentials : {
-            port : 6379,
-            host : "localhost",
-            password : ""
-        }
-    }
-}
+var session = require('./api/session');
+var sounds = require('./api/sounds');
+var config = require('./config').config;
 
-var redisStore = redis.createClient(redisData.credentials.port, redisData.credentials.host);
+var users = require('./users.js').users;
 
-redisStore.auth(redisData.credentials.password);
-redisStore.on('connect', function() {
-    console.log('connected to redis');
-});
+var redisStore = require('./redis-store').redisStore;
 
 var job = new CronJob('0 20 * * * *', refreshToken, null, false, 'Europe/Berlin');
 job.start();
@@ -80,7 +71,11 @@ function refreshToken() {
     }); 
 }
 
+
 app.use(express.static(__dirname));
+app.use(cookieParser());
+app.use(bodyParser());
+app.use(expressSession({ secret: 'keyboard cat' }));
 
 app.set('views', __dirname);
 app.set('view engine', 'jade');
@@ -89,107 +84,19 @@ app.get('/', function(req, res) {
     res.render('index');
 });
 
-app.get('/setToken/:oauth/:refresh', function(req, res) {
-    redisStore.set('oauthToken', req.params.oauth);
-    redisStore.set('refreshToken', req.params.refresh);
-    res.send('Tokens set');
-});
+app.get('/api/session', session.get);
 
-app.get('/getToken', function(req, res) {
-    redisStore.mget(['oauthToken', 'refreshToken'], function(err, reply) {
-        res.send(reply);
-    });
-});
+app.delete("/api/session", session.delete);
 
-app.get('/downloadsound/:id', function(req, res) {
-    var id = req.params.id;
-    redisStore.mget(['oauthToken', 'refreshToken'], function(err, reply) {
-        //var oauthToken = "0d698e90de50d73bf0bcb391e05b81fa5fcc4424";
-        var oauthToken = reply[0];
-        request({
-            method: 'GET',
-            uri: 'https://www.freesound.org/apiv2/sounds/' + id + '/download/',
-            headers: {
-                'Authorization' : 'Bearer ' + oauthToken
-            }
-        }).pipe(res);
-    });
-});
+app.get('/downloadsound/:id', sounds.downloadsound);
 
-app.get('/textsearch/:text/:page', function(req, res) {
-    var page = req.params.page ? req.params.page : 1;
-    request({
-        method: 'GET',
-        uri: 'http://www.freesound.org/apiv2/search/text/',
-        qs: {
-            query : req.params.text,
-            page : page,
-            token : process.env.FREESOUND_API_TOKEN || '8390a6d1330cbb30bb4b79794f3a0a36ed95b877'
-        }
-    }, function(error, response, body) {
-        res.send(body);
-    });
-});
+app.get('/textsearch/:text/:page', sounds.search);
 
-app.get('/sounddata/:id', function(req, res) {
-    request({
-        method: 'GET',
-        uri: 'http://www.freesound.org/apiv2/sounds/' + req.params.id,
-        qs: {
-            token : process.env.FREESOUND_API_TOKEN || '8390a6d1330cbb30bb4b79794f3a0a36ed95b877'
-        }
-    }, function(error, response, body) {
-        res.send(body);
-    });
-});
+app.get('/sounddata/:id', sounds.sounddata);
 
 app.get('/mongotest', function(req, res) {
-    require('mongodb').connect(mongourl, function(err, conn){
-        conn.collection('ips', function(err, coll){
-            /* Simple object to insert: ip address and date */
-            object_to_insert = { 'ip': req.connection.remoteAddress, 'ts': new Date() };
-
-            /* Insert the object then print in response */
-            /* Note the _id has been created */
-            coll.insert( object_to_insert, {safe:true}, function(err){
-                res.writeHead(200, {'Content-Type': 'text/plain'});
-                res.write(JSON.stringify(object_to_insert) + err);
-                res.end('\n');
-            });
-        });
-    });
+    res.send(users);
 });
 
 app.listen(process.env.VCAP_APP_PORT || 3000);
 console.log("Server is listening on port: " + (process.env.VCAP_APP_PORT || 3000));
-
-if(process.env.VCAP_SERVICES){
-    var env = JSON.parse(process.env.VCAP_SERVICES);
-    var mongo = env['mongodb2-2.4.8'][0]['credentials'];
-    console.log(mongo);
-}
-else{
-    var mongo = {
-        "hostname":"localhost",
-        "port":27017,
-        "username":"",
-        "password":"",
-        "name":"",
-        "db":"db"
-    }
-}
-
-var generate_mongo_url = function(obj){
-    obj.hostname = (obj.hostname || 'localhost');
-    obj.port = (obj.port || 27017);
-    obj.db = (obj.db || 'test');
-
-    if(obj.username && obj.password){
-        return "mongodb://" + obj.username + ":" + obj.password + "@" + obj.hostname + ":" + obj.port + "/" + obj.db;
-    }
-    else{
-        return "mongodb://" + obj.hostname + ":" + obj.port + "/" + obj.db;
-    }
-}
-
-var mongourl = generate_mongo_url(mongo);

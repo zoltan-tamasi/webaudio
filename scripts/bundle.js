@@ -27575,9 +27575,6 @@ $(function() {
     try {
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         context = new AudioContext();
-
-        $("#generated-image").append(newCanvas);
-        canvas = newCanvas.getContext('2d');
     } catch(e) {
         alert('Web Audio API is not supported in this browser');
     }

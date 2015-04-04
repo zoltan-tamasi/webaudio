@@ -3,13 +3,18 @@
   "version": "0.0.1",
   "dependencies": {
     "express": "^4.10.2",
+    "cookie-parser": "*",
+    "body-parser":"*",
+    "express-session":"*",
     "jade": "*",
     "request": "^2.53.0",
     "redis": "^0.12.1",
     "cron" : "*",
     "flux": "^2.0.0",
     "react": "^0.13.0",
-    "underscore": "^1.7.0"
+    "underscore": "^1.7.0",
+    "mongodb": "*",
+    "monk": "*"
   },
   "devDependencies": {
     "browserify": "~6.2.0",
