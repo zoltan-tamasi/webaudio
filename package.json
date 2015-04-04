@@ -6,6 +6,25 @@
     "jade": "*",
     "request": "^2.53.0",
     "redis": "^0.12.1",
-    "cron" : "*"
+    "cron" : "*",
+    "flux": "^2.0.0",
+    "react": "^0.13.0",
+    "underscore": "^1.7.0"
+  },
+  "devDependencies": {
+    "browserify": "~6.2.0",
+    "envify": "~3.0.0",
+    "react": "^0.13.0",
+    "reactify": "^0.15",
+    "watchify": "~2.1.0"
+  },
+  "scripts": {
+    "build": "browserify scripts/main.js | uglifyjs -cm > scripts/bundle.js"
+  },
+  "browserify": {
+    "transform": [
+      "reactify",
+      "envify"
+    ]
   }
 }

@@ -4,8 +4,21 @@ var request = require('request');
 var redis = require('redis');
 var CronJob = require('cron').CronJob;
 
-var redisData = JSON.parse(process.env.VCAP_SERVICES)["redis-2.2"][0];
+var redisData, redisStore;
+if (process.env.VCAP_SERVICES) {
+    redisData = JSON.parse(process.env.VCAP_SERVICES)["redis-2.2"][0];
+} else {
+    redisData = {
+        credentials : {
+            port : 6379,
+            host : "localhost",
+            password : ""
+        }
+    }
+}
+
 var redisStore = redis.createClient(redisData.credentials.port, redisData.credentials.host);
+
 redisStore.auth(redisData.credentials.password);
 redisStore.on('connect', function() {
     console.log('connected to redis');
@@ -91,11 +104,13 @@ app.get('/getToken', function(req, res) {
 app.get('/downloadsound/:id', function(req, res) {
     var id = req.params.id;
     redisStore.mget(['oauthToken', 'refreshToken'], function(err, reply) {
+        //var oauthToken = "0d698e90de50d73bf0bcb391e05b81fa5fcc4424";
+        var oauthToken = reply[0];
         request({
             method: 'GET',
             uri: 'https://www.freesound.org/apiv2/sounds/' + id + '/download/',
             headers: {
-                'Authorization' : 'Bearer ' + reply[0]
+                'Authorization' : 'Bearer ' + oauthToken
             }
         }).pipe(res);
     });
@@ -128,5 +143,53 @@ app.get('/sounddata/:id', function(req, res) {
     });
 });
 
+app.get('/mongotest', function(req, res) {
+    require('mongodb').connect(mongourl, function(err, conn){
+        conn.collection('ips', function(err, coll){
+            /* Simple object to insert: ip address and date */
+            object_to_insert = { 'ip': req.connection.remoteAddress, 'ts': new Date() };
+
+            /* Insert the object then print in response */
+            /* Note the _id has been created */
+            coll.insert( object_to_insert, {safe:true}, function(err){
+                res.writeHead(200, {'Content-Type': 'text/plain'});
+                res.write(JSON.stringify(object_to_insert) + err);
+                res.end('\n');
+            });
+        });
+    });
+});
+
 app.listen(process.env.VCAP_APP_PORT || 3000);
 console.log("Server is listening on port: " + (process.env.VCAP_APP_PORT || 3000));
+
+if(process.env.VCAP_SERVICES){
+    var env = JSON.parse(process.env.VCAP_SERVICES);
+    var mongo = env['mongodb2-2.4.8'][0]['credentials'];
+    console.log(mongo);
+}
+else{
+    var mongo = {
+        "hostname":"localhost",
+        "port":27017,
+        "username":"",
+        "password":"",
+        "name":"",
+        "db":"db"
+    }
+}
+
+var generate_mongo_url = function(obj){
+    obj.hostname = (obj.hostname || 'localhost');
+    obj.port = (obj.port || 27017);
+    obj.db = (obj.db || 'test');
+
+    if(obj.username && obj.password){
+        return "mongodb://" + obj.username + ":" + obj.password + "@" + obj.hostname + ":" + obj.port + "/" + obj.db;
+    }
+    else{
+        return "mongodb://" + obj.hostname + ":" + obj.port + "/" + obj.db;
+    }
+}
+
+var mongourl = generate_mongo_url(mongo);
