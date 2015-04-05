@@ -6,6 +6,7 @@ var Col = ReactBootstrap.Col;
 var Navbar = ReactBootstrap.Navbar;
 var Panel = ReactBootstrap.Panel;
 
+var Login = require('./login.react');
 var Navigation = require('./navigation.react');
 var SelectedSamplesPanel = require('./selected-samples-panel.react');
 var TransportPanel = require('./transport.react');
@@ -50,6 +51,7 @@ var App = React.createClass({
 
     getInitialState: function() {
         return {
+            loggedIn: false,
             searchResults: [],
             selectedSample: null,
             searchText: "",
@@ -59,6 +61,55 @@ var App = React.createClass({
                 waveform: null
             }
         };
+    },
+
+    login: function(email, password) {
+        var credentials = {
+            email: email,
+            password: password
+        };
+        $.ajax({
+            url: "/api/session",
+            type: "GET",
+            data: credentials,
+            success: function(response) {
+                var responseObj = JSON.parse(response);
+                if (responseObj.success) {
+                    $.ajax({
+                        url: "/api/user",
+                        data: JSON.stringify(credentials),
+                        success: function(response) {
+                            responseObj = JSON.parse(response);
+                            this.setState({ loggedIn : true });
+                        }.bind(this),
+                        contentType: 'application/json; charset=utf-8'
+                    });
+                } else {
+                    this.setState({ loginMessage: responseObj.message});
+                }
+            }.bind(this)
+        });
+    },
+
+    regUser: function(email, password) {
+        var user = {
+            email : email,
+            password : password
+        };
+        $.ajax({
+            url: "/api/user",
+            type: "POST",
+            data: JSON.stringify(user),
+            success: function(response) {
+                var responseObj = JSON.parse(response);
+                if (responseObj.success) {
+                    initLoginRegView(false);
+                } else {
+                    context.message(responseObj.message);
+                }
+            },
+            contentType: 'application/json; charset=utf-8'
+        });
     },
 
     selectSample: function(id) {
@@ -104,14 +155,15 @@ var App = React.createClass({
 
     resultsPage: function(next) {
         var newPage = next ? this.state.resultsPage + 1 : this.state.resultsPage - 1;
-        this.search(this.state.searchText, newPage);
+        this.search(this.state.searchText, newPage);g
         this.setState({ resultsPage : newPage });
     },
 
     render: function() {
         return (
             <div className="container">
-                <Row>
+                { this.state.loggedIn ? null : (<Login login={this.login} regUser={this.regUser} />) }
+                <Row className={this.state.loggedIn ? '' : 'hidden'}>
                     <Col md={4} sm={4} xs={12}>
                         <Navigation />
                         <SelectedSamplesPanel selectedSample={ this.state.selectedSample }/>
@@ -122,7 +174,7 @@ var App = React.createClass({
                         <SearchResults searchResults={ this.state.searchResults } selectSample={ this.selectSample } resultsPage={ this.resultsPage } />
                     </Col>
                 </Row>
-                <Row>
+                <Row className={this.state.loggedIn ? '' : 'hidden'}>
                     <WaveformPanel waveform={ this.state.waveform } wavesurfer={ wavesurfer }/>
                 </Row>
             </div>

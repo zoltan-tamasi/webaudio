@@ -4,19 +4,31 @@ if (process.env.VCAP_SERVICES) {
 } else {
     redisData = {
         credentials : {
-            port : 6379,
-            host : "localhost",
-            password : ""
+            port : 10000,
+            host : "127.0.0.1",
+            password : "fa9a1a0c-3aa3-4679-bb05-f0bcc599c9ba"
         }
     },
     mongoData = {
     	credentials : {
-            port : 6379,
-            host : "localhost",
-            password : ""
+            port : 10000,
+            hostname : "localhost",
+            password : "d61081b4-af3e-41bc-92fc-745b1ac2057b",
+            username: "1d6e9561-4415-4a9b-86d1-251cbc2b0841",
+            db : "db"
         }	
     }
 }
+
+/*mongoData = {
+	credentials: {
+		port : 33079,
+		hostname : "ds033079.mongolab.com",
+		password : "sylvain84",
+		username : "zoltan_tamasi",
+		db : "todo-app"
+	}
+}*/
 
 var config = {
 	"MONGO_DB_HOST" : mongoData.credentials.hostname,

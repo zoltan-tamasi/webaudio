@@ -1,7 +1,10 @@
+
+var fileSystem = require('fs');
+var path = require('path');
 var express = require('express');
 var app = express();
 var request = require('request');
-var mongodb = require('mongodb');
+var mongoClient = require("mongodb").MongoClient;
 var CronJob = require('cron').CronJob;
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -9,9 +12,12 @@ var expressSession = require('express-session');
 
 var session = require('./api/session');
 var sounds = require('./api/sounds');
-var config = require('./config').config;
+var user = require('./api/user');
 
+var config = require('./config').config;
+var pass = require('./pass');
 var users = require('./users.js').users;
+
 
 var redisStore = require('./redis-store').redisStore;
 
@@ -77,11 +83,10 @@ app.use(cookieParser());
 app.use(bodyParser());
 app.use(expressSession({ secret: 'keyboard cat' }));
 
-app.set('views', __dirname);
-app.set('view engine', 'jade');
-
 app.get('/', function(req, res) {
-    res.render('index');
+    var filePath = path.join(__dirname, 'index.html');
+    var readStream = fileSystem.createReadStream(filePath);
+    readStream.pipe(res);
 });
 
 app.get('/api/session', session.get);
@@ -94,8 +99,12 @@ app.get('/textsearch/:text/:page', sounds.search);
 
 app.get('/sounddata/:id', sounds.sounddata);
 
+app.get('/api/user', pass.restrict, user.get);
+
+app.post('/api/user', user.post);
+
 app.get('/mongotest', function(req, res) {
-    res.send(users);
+    res.send(users.find());
 });
 
 app.listen(process.env.VCAP_APP_PORT || 3000);
