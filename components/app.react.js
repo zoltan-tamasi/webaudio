@@ -59,7 +59,9 @@ var App = React.createClass({
             waveform: {
                 type: "image",
                 waveform: null
-            }
+            },
+            mainState: "searchState",
+            userData: { sounds: [] }
         };
     },
 
@@ -80,7 +82,7 @@ var App = React.createClass({
                         data: JSON.stringify(credentials),
                         success: function(response) {
                             responseObj = JSON.parse(response);
-                            this.setState({ loggedIn : true });
+                            this.setState({ loggedIn : true, userData : responseObj.user });
                         }.bind(this),
                         contentType: 'application/json; charset=utf-8'
                     });
@@ -91,10 +93,11 @@ var App = React.createClass({
         });
     },
 
-    regUser: function(email, password) {
+    regUser: function(email, password, username) {
         var user = {
             email : email,
-            password : password
+            password : password,
+            username : username
         };
         $.ajax({
             url: "/api/user",
@@ -119,6 +122,9 @@ var App = React.createClass({
         $.get("/sounddata/" + id, function(audio) {
             var audio = JSON.parse(audio);
             $("#image-panel").html($("<img id='image'>").attr("src", audio.images.waveform_l));
+            var userNotes = this.state.userData.sounds && this.state.userData.sounds[id] && this.state.userData.sounds[id].userNotes; 
+            var isFavourite = this.state.userData.sounds && this.state.userData.sounds[id] && this.state.userData.sounds[id].isFavourite;
+            $.extend(audio, { userNotes : userNotes, isFavourite : isFavourite });
             this.setState({ selectedSample : audio });
         }.bind(this));
     },
@@ -159,19 +165,109 @@ var App = React.createClass({
         this.setState({ resultsPage : newPage });
     },
 
+    saveNotes: function(notes) {
+        if (this.state.userData.sounds === undefined) {
+            this.state.userData.sounds = {};
+        }
+        if (this.state.userData.sounds[this.state.selectedSample.id] === undefined) {
+            this.state.userData.sounds[this.state.selectedSample.id] = {};
+        } 
+        this.state.userData.sounds[this.state.selectedSample.id].userNotes = notes;
+
+        $.ajax({
+            url: "/api/userdata",
+            type: "POST",
+            data: JSON.stringify(this.state.userData),
+            success: function(response) {
+                console.log(response);
+            },
+            contentType: 'application/json; charset=utf-8'
+        });
+    },
+
+    addTag: function(tagName) {
+        if (this.state.userData.sounds === undefined) {
+            this.state.userData.sounds = {};
+        }
+        if (this.state.userData.sounds[this.state.selectedSample.id] === undefined) {
+            this.state.userData.sounds[this.state.selectedSample.id] = {};
+        } 
+        if (this.state.userData.sounds[this.state.selectedSample.id].userTags === undefined) {
+            this.state.userData.sounds[this.state.selectedSample.id].userTags = [];
+        }
+        this.state.userData.sounds[this.state.selectedSample.id].userTags.push(tagName);
+
+        $.ajax({
+            url: "/api/userdata",
+            type: "POST",
+            data: JSON.stringify(this.state.userData),
+            success: function(response) {
+                console.log(response);
+                this.setState();
+            }.bind(this),
+            contentType: 'application/json; charset=utf-8'
+        });
+    },
+
+    toggleFavourite: function() {
+        if (this.state.userData.sounds === undefined) {
+            this.state.userData.sounds = {};
+        }
+        if (this.state.userData.sounds[this.state.selectedSample.id] === undefined) {
+            this.state.userData.sounds[this.state.selectedSample.id] = {};
+        } 
+        if (this.state.userData.sounds[this.state.selectedSample.id].isFavourite) {
+            this.state.userData.sounds[this.state.selectedSample.id].isFavourite = false;
+        } else {
+            this.state.userData.sounds[this.state.selectedSample.id].isFavourite = true;
+        }
+
+        $.ajax({
+            url: "/api/userdata",
+            type: "POST",
+            data: JSON.stringify(this.state.userData),
+            success: function(response) {
+                console.log(response);
+                this.setState();
+            }.bind(this),
+            contentType: 'application/json; charset=utf-8'
+        });  
+    },
+
+    setMainState: function(state) {
+        this.setState({ mainState : state });
+    },
+
     render: function() {
+        var selectedIsFavourite;
+        if (this.state.userData.sounds === undefined) {
+            selectedIsFavourite = false;
+        } else if (!this.state.selectedSample) {
+            selectedIsFavourite = false;
+        } else if (this.state.userData.sounds[this.state.selectedSample.id] === undefined) {
+            selectedIsFavourite = false;
+        } else {
+            selectedIsFavourite = !!this.state.userData.sounds[this.state.selectedSample.id].isFavourite;
+        }
+
         return (
             <div className="container">
                 { this.state.loggedIn ? null : (<Login login={this.login} regUser={this.regUser} />) }
                 <Row className={this.state.loggedIn ? '' : 'hidden'}>
                     <Col md={4} sm={4} xs={12}>
-                        <Navigation />
-                        <SelectedSamplesPanel selectedSample={ this.state.selectedSample }/>
+                        <Navigation state={this.state.mainState} setMainState={this.setMainState}/>
+                        <SelectedSamplesPanel selectedSample={ this.state.selectedSample } selectedIsFavourite={selectedIsFavourite}
+                            saveNotes={this.saveNotes} addTag={this.addTag} toggleFavourite={this.toggleFavourite}/>
                         <TransportPanel playSound={this.playSound} pauseSound={this.pauseSound} rewind={this.rewind} fastForward={this.fastForward} />
                     </Col>
                     <Col md={8} sm={8} xs={12}>
                         <SearchBar search={ this.search }/>
-                        <SearchResults searchResults={ this.state.searchResults } selectSample={ this.selectSample } resultsPage={ this.resultsPage } />
+                        { this.state.mainState == "searchState" ? (
+                            <SearchResults sounds={this.state.userData.sounds} searchResults={ this.state.searchResults } 
+                                selectSample={ this.selectSample } resultsPage={ this.resultsPage } />
+                        ) : (
+                            "Samples"
+                        )}
                     </Col>
                 </Row>
                 <Row className={this.state.loggedIn ? '' : 'hidden'}>

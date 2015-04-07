@@ -5,10 +5,22 @@ var SearchResult = React.createClass({
         this.props.selectSample(this.props.audio.id);
     },
 
+    removeTag: function(e) {
+        console.log(e);
+    },
+
     render: function() {
         var tags = this.props.audio.tags.slice(0, 8).map(function(tag) {
             return (
                 <span className="badge" style={{ marginRight: '5px' }} >
+                    {tag}
+                </span>
+            );
+        });
+
+        var userTags = this.props.userTags && this.props.userTags.map(function(tag) {
+            return (
+                <span className="badge" style={{ marginRight: '5px', backgroundColor: 'rgb(134, 195, 44)' }} >
                     {tag}
                 </span>
             );
@@ -31,7 +43,7 @@ var SearchResult = React.createClass({
                     </small>
                 </h5>
                 <p className="list-group-item-text">
-                    {tags}
+                    {tags} {userTags}
                 </p>
             </div>
         );

@@ -13,11 +13,11 @@ var expressSession = require('express-session');
 var session = require('./api/session');
 var sounds = require('./api/sounds');
 var user = require('./api/user');
+var userdata = require('./api/userdata');
 
 var config = require('./config').config;
 var pass = require('./pass');
 var users = require('./users.js').users;
-
 
 var redisStore = require('./redis-store').redisStore;
 
@@ -77,7 +77,6 @@ function refreshToken() {
     }); 
 }
 
-
 app.use(express.static(__dirname));
 app.use(cookieParser());
 app.use(bodyParser());
@@ -102,6 +101,8 @@ app.get('/sounddata/:id', sounds.sounddata);
 app.get('/api/user', pass.restrict, user.get);
 
 app.post('/api/user', user.post);
+
+app.post('/api/userdata', userdata.post);
 
 app.get('/mongotest', function(req, res) {
     res.send(users.find());

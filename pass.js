@@ -27,8 +27,8 @@ function hash(pwd, salt, fn) {
 
 exports.authenticate = function(email, password, fn) {
   console.log('authenticating %s:%s', email, password);
-
   users.findOne({ email : email }, function(err, user) {
+    if (err) { console.log (err); }
     if (!user) return fn(new Error('cannot find user'));
     hash(password, user.salt, function(err, hash) {
       if (err) return fn(err);

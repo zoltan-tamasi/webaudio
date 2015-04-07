@@ -11,24 +11,14 @@ if (process.env.VCAP_SERVICES) {
     },
     mongoData = {
     	credentials : {
-            port : 10000,
+            port : 10001,
             hostname : "localhost",
-            password : "d61081b4-af3e-41bc-92fc-745b1ac2057b",
-            username: "1d6e9561-4415-4a9b-86d1-251cbc2b0841",
+            password : "f09eca35-ee36-4e3d-a80f-a5868b0a88b2",
+            username: "d63c765e-da46-4427-b52a-51b93108b37e",
             db : "db"
         }	
     }
 }
-
-/*mongoData = {
-	credentials: {
-		port : 33079,
-		hostname : "ds033079.mongolab.com",
-		password : "sylvain84",
-		username : "zoltan_tamasi",
-		db : "todo-app"
-	}
-}*/
 
 var config = {
 	"MONGO_DB_HOST" : mongoData.credentials.hostname,

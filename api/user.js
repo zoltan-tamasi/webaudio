@@ -7,7 +7,7 @@ exports.get = function(req, res) {
       return {
         username : req.session.user.username,
         email : req.session.user.email,
-        todos : req.session.user.todos
+        sounds : req.session.user.sounds
       }
     })()
   }));
@@ -33,7 +33,7 @@ exports.post =function(req, res) {
         email : data.email,
         hash: hash,
         salt: salt,
-        todos: []
+        usersounds: []
       }, function(err, user) {
         if (err) { res.end(err.toString()); return; }
         res.end(JSON.stringify({

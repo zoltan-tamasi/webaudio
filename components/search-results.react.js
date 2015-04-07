@@ -25,8 +25,9 @@ var SearchResults = React.createClass({
 
     render: function() {
         var results = this.props.searchResults.results && this.props.searchResults.results.map(function(result) {
+            var userTags = this.props.sounds[result.id] && this.props.sounds[result.id].userTags;
             return ( 
-                <SearchResult audio={result} key={result.id} active={this.state.selectedSample===result.id} selectSample={this.selectSample}/>
+                <SearchResult audio={result} key={result.id} active={this.state.selectedSample===result.id} selectSample={this.selectSample} userTags={userTags}/>
             )
         }.bind(this));
         return (
