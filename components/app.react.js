@@ -89,7 +89,7 @@ var App = React.createClass({
                         contentType: 'application/json; charset=utf-8'
                     });
                 } else {
-                    this.setState({ loginMessage: responseObj.message});
+                    BootstrapDialog.show({  message: responseObj.message });
                 }
             }.bind(this)
         });
@@ -108,12 +108,22 @@ var App = React.createClass({
             success: function(response) {
                 var responseObj = JSON.parse(response);
                 if (responseObj.success) {
-                    initLoginRegView(false);
+                    BootstrapDialog.show({  message: responseObj.message });
                 } else {
-                    context.message(responseObj.message);
+                    BootstrapDialog.show({  message: responseObj.message });
                 }
             },
             contentType: 'application/json; charset=utf-8'
+        });
+    },
+
+    logout: function() {
+        $.ajax({
+            url: "/api/session",
+            success: function() {
+                this.setState({  loggedIn : false });
+            }.bind(this),
+            type: "DELETE"
         });
     },
 
@@ -265,7 +275,7 @@ var App = React.createClass({
                 { this.state.loggedIn ? null : (<Login login={this.login} regUser={this.regUser} />) }
                 <Row className={this.state.loggedIn ? '' : 'hidden'}>
                     <Col md={4} sm={4} xs={12}>
-                        <Navigation state={this.state.mainState} setMainState={this.setMainState}/>
+                        <Navigation state={this.state.mainState} setMainState={this.setMainState} logout={this.logout}/>
                         <SelectedSamplesPanel selectedSample={ this.state.selectedSample } selectedIsFavourite={selectedIsFavourite}
                             saveNotes={this.saveNotes} addTag={this.addTag} toggleFavourite={this.toggleFavourite}/>
                         <TransportPanel playSound={this.playSound} pauseSound={this.pauseSound} rewind={this.rewind} fastForward={this.fastForward} />

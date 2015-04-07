@@ -38,7 +38,7 @@ exports.post =function(req, res) {
         if (err) { res.end(err.toString()); return; }
         res.end(JSON.stringify({
           success: true,
-          message: "User with name " + data.username + " registered",
+          message: "User with email " + data.email + " registered",
         }));
       });
     });

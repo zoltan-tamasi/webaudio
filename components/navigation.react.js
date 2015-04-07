@@ -12,10 +12,14 @@ var Navigation = React.createClass({
         this.props.setMainState("samplesState");
     },
 
+    logout: function() {
+        this.props.logout();
+    },
+
     render: function() {
         var state = this.props.state;
         return (
-            <Navbar brand="Webaudio app">
+            <Navbar brand="Sampleserve">
                 <div id="navbar-inverse" className="collapse navbar-collapse">
                     <ul className="nav navbar-nav">
                         <li className={state == "searchState" ? "active" : ""} onClick={this.setSearchState}>
@@ -23,6 +27,9 @@ var Navigation = React.createClass({
                         </li>
                         <li className={state == "samplesState" ? "active" : ""}>
                             <a href="#samples" onClick={this.setSamplesState}>Samples</a>
+                        </li>
+                        <li className={state == "samplesState" ? "active" : ""}>
+                            <a href="#samples" onClick={this.logout}>Logout</a>
                         </li>
                     </ul>
                 </div>
