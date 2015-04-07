@@ -13,6 +13,7 @@ var TransportPanel = require('./transport.react');
 var SearchBar = require('./search-bar.react');
 var SearchResults = require('./search-results.react');
 var WaveformPanel = require('./waveform-panel.react');
+var UserSamples = require('./user-samples.react');
 
 var source, context;
 var canvasWidth = 900;
@@ -61,6 +62,7 @@ var App = React.createClass({
                 waveform: null
             },
             mainState: "searchState",
+            playState: "preview",
             userData: { sounds: [] }
         };
     },
@@ -125,7 +127,7 @@ var App = React.createClass({
             var userNotes = this.state.userData.sounds && this.state.userData.sounds[id] && this.state.userData.sounds[id].userNotes; 
             var isFavourite = this.state.userData.sounds && this.state.userData.sounds[id] && this.state.userData.sounds[id].isFavourite;
             $.extend(audio, { userNotes : userNotes, isFavourite : isFavourite });
-            this.setState({ selectedSample : audio });
+            this.setState({ selectedSample : audio, playState : "preview" });
         }.bind(this));
     },
 
@@ -139,12 +141,17 @@ var App = React.createClass({
     },
 
     playSound: function() {
-        $("#image-panel").hide();
-        $("#waveform-panel").show();
-        wavesurfer.load('downloadsound/' + this.state.selectedSample.id);
-        wavesurfer.on('ready', function () {
+        if (this.state.playState == "loaded") {
             wavesurfer.play();
-        });
+        } else {
+            $("#image-panel").hide();
+            $("#waveform-panel").show();
+            wavesurfer.load('downloadsound/' + this.state.selectedSample.id);
+            wavesurfer.on('ready', function () {
+                this.setState({  playState : "loaded" });
+                wavesurfer.play();
+            }.bind(this));
+        }
     },
 
     pauseSound: function() {
@@ -220,6 +227,9 @@ var App = React.createClass({
             this.state.userData.sounds[this.state.selectedSample.id].isFavourite = false;
         } else {
             this.state.userData.sounds[this.state.selectedSample.id].isFavourite = true;
+            this.state.userData.sounds[this.state.selectedSample.id].name = this.state.selectedSample.name;
+            this.state.userData.sounds[this.state.selectedSample.id].tags = this.state.selectedSample.tags;
+            this.state.userData.sounds[this.state.selectedSample.id].id = this.state.selectedSample.id;
         }
 
         $.ajax({
@@ -260,15 +270,19 @@ var App = React.createClass({
                             saveNotes={this.saveNotes} addTag={this.addTag} toggleFavourite={this.toggleFavourite}/>
                         <TransportPanel playSound={this.playSound} pauseSound={this.pauseSound} rewind={this.rewind} fastForward={this.fastForward} />
                     </Col>
-                    <Col md={8} sm={8} xs={12}>
-                        <SearchBar search={ this.search }/>
-                        { this.state.mainState == "searchState" ? (
+                
+                        
+                    { this.state.mainState == "searchState" ? (
+                        <Col md={8} sm={8} xs={12}>
+                            <SearchBar search={ this.search } />
                             <SearchResults sounds={this.state.userData.sounds} searchResults={ this.state.searchResults } 
                                 selectSample={ this.selectSample } resultsPage={ this.resultsPage } />
-                        ) : (
-                            "Samples"
-                        )}
-                    </Col>
+                        </Col>
+                    ) : (
+                        <Col md={8} sm={8} xs={12}>
+                            <UserSamples userSamples={this.state.userData.sounds} selectSample={ this.selectSample } />
+                        </Col>
+                    )}
                 </Row>
                 <Row className={this.state.loggedIn ? '' : 'hidden'}>
                     <WaveformPanel waveform={ this.state.waveform } wavesurfer={ wavesurfer }/>
